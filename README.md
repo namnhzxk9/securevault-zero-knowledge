@@ -22,6 +22,7 @@ Features
 * Encrypted secret storage
 * Reveal-on-demand decryption
 * No plaintext storage
+* Password strength validation
 
 Security Model
 
@@ -68,11 +69,11 @@ Implemented:
 * Store encrypted items in IndexedDB
 * Reveal secrets on demand
 * Lock vault manually
+* Password strength meter for master password
 
 Planned improvements:
 
 * Auto-lock after inactivity
-* Password strength meter
 * Encrypted vault export/import
 * Clipboard auto-clear
 * Additional unit tests

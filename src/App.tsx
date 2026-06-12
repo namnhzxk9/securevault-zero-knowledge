@@ -160,6 +160,25 @@ function App() {
               boxSizing: "border-box",
             }}
           />
+            <div
+    style={{
+      marginBottom: "16px",
+      padding: "12px",
+      border: "1px solid #333",
+      borderRadius: "8px",
+      background: "#111",
+    }}
+  >
+    <strong>Password Strength: {passwordStrength.label}</strong>
+
+    <ul style={{ marginTop: "8px", marginBottom: 0, paddingLeft: "20px" }}>
+      <li>{passwordStrength.checks.minLength ? "✓" : "○"} At least 12 characters</li>
+      <li>{passwordStrength.checks.hasUppercase ? "✓" : "○"} Contains uppercase letter</li>
+      <li>{passwordStrength.checks.hasLowercase ? "✓" : "○"} Contains lowercase letter</li>
+      <li>{passwordStrength.checks.hasNumber ? "✓" : "○"} Contains number</li>
+      <li>{passwordStrength.checks.hasSpecialChar ? "✓" : "○"} Contains special character</li>
+    </ul>
+  </div>
 
           <button
             onClick={handleUnlock}
