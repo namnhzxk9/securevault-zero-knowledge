@@ -1,3 +1,7 @@
+## Live Demo
+
+https://securevault-zero-knowledge.vercel.app
+
 # SecureVault Zero-Knowledge
 
 SecureVault is a browser-based encrypted vault for storing sensitive notes, API keys, passwords, and private data.
