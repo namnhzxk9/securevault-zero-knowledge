@@ -8,6 +8,10 @@ Live Demo
 
 https://securevault-zero-knowledge.vercel.app
 
+## Screenshot
+
+![SecureVault Dashboard](./screenshots/dashboard.png)
+
 Features
 
 * AES-256-GCM encryption
