@@ -30,8 +30,58 @@ function App() {
   );
   const [copyMessage, setCopyMessage] = useState("");
 
+  const [securityHealth, setSecurityHealth] = useState({
+    webCryptoAvailable: false,
+    indexedDbAvailable: false,
+    clipboardStatus: "unknown",
+    storageMode: "local-only",
+  });
+
   useEffect(() => {
     loadItems();
+  }, []);
+
+  useEffect(() => {
+    async function checkSecurityHealth() {
+      const webCryptoAvailable =
+        typeof window !== "undefined" && Boolean(window.crypto?.subtle);
+
+      const indexedDbAvailable =
+        typeof window !== "undefined" && Boolean(window.indexedDB);
+
+      let clipboardStatus = "unknown";
+
+      try {
+        if (navigator.permissions && navigator.clipboard) {
+          const permission = await navigator.permissions.query({
+            name: "clipboard-write" as PermissionName,
+          });
+
+          clipboardStatus = permission.state;
+        } else if (navigator.clipboard) {
+          clipboardStatus = "available";
+        } else {
+          clipboardStatus = "unavailable";
+        }
+      } catch {
+        clipboardStatus = navigator.clipboard ? "available" : "unavailable";
+      }
+
+      setSecurityHealth({
+        webCryptoAvailable,
+        indexedDbAvailable,
+        clipboardStatus,
+        storageMode: "local-only",
+      });
+    }
+
+    checkSecurityHealth();
+
+    const intervalId = window.setInterval(checkSecurityHealth, 3000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   async function loadItems() {
@@ -53,8 +103,17 @@ function App() {
   }
 
   async function handleUnlock() {
-    if (masterPassword.trim().length < 12) {
-      alert("Master password must be at least 12 characters.");
+    const allPasswordChecksPassed =
+      passwordStrength.checks.minLength &&
+      passwordStrength.checks.hasUppercase &&
+      passwordStrength.checks.hasLowercase &&
+      passwordStrength.checks.hasNumber &&
+      passwordStrength.checks.hasSpecialChar;
+
+    if (!allPasswordChecksPassed) {
+      alert(
+        "Master password must meet all security requirements before unlocking."
+      );
       return;
     }
 
@@ -202,6 +261,7 @@ function App() {
         </div>
 
         <div
+          className="cyber-pulse"
           style={{
             padding: "10px 14px",
             border: "1px solid #333",
@@ -212,7 +272,8 @@ function App() {
             letterSpacing: "1px",
           }}
         >
-          LOCAL-ONLY · ZERO-KNOWLEDGE
+          <span className="live-dot" />
+          CLIENT-SIDE ENCRYPTION · ZERO-KNOWLEDGE
         </div>
       </header>
 
@@ -327,15 +388,16 @@ function App() {
 
             <div style={{ textAlign: "center" }}>
               <button
+                className="cyber-button cyber-pulse"
                 onClick={handleUnlock}
                 style={{
                   padding: "12px 18px",
                   cursor: "pointer",
                   borderRadius: "8px",
-                  border: "none",
-                  background: "#e5e5e5",
+                  border: "1px solid rgba(100, 255, 180, 0.5)",
+                  background: "linear-gradient(135deg, #e5e5e5, #b7ffd7)",
                   color: "#111",
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
                 Unlock
@@ -355,15 +417,71 @@ function App() {
                 background: "#0f0f0f",
               }}
             >
-              <h3 style={{ marginTop: 0 }}>System Status</h3>
+              <h3 style={{ marginTop: 0, textAlign: "center" }}>
+                Real-time Security Health
+              </h3>
+
+              <div
+                style={{
+                  marginBottom: "14px",
+                  textAlign: "center",
+                  color: "#64ffb4",
+                  fontSize: "12px",
+                  letterSpacing: "2px",
+                  fontWeight: 700,
+                }}
+              >
+                <span className="live-dot" />
+                LIVE MONITORING
+              </div>
 
               <div style={{ color: "#aaa", lineHeight: "1.8" }}>
-                <div>✓ Client-side encryption active</div>
-                <div>✓ No backend database</div>
-                <div>✓ Local encrypted storage</div>
-                <div>✓ Manual lock available</div>
-                <div>✓ Auto-lock after inactivity</div>
+                <div>
+                  {securityHealth.webCryptoAvailable ? "✓" : "✕"} Web Crypto
+                  API:{" "}
+                  {securityHealth.webCryptoAvailable
+                    ? "Available"
+                    : "Unavailable"}
+                </div>
+
+                <div>
+                  {securityHealth.indexedDbAvailable ? "✓" : "✕"} IndexedDB:{" "}
+                  {securityHealth.indexedDbAvailable
+                    ? "Available"
+                    : "Unavailable"}
+                </div>
+
+                <div>
+                  {isUnlocked ? "✓" : "○"} Vault State:{" "}
+                  {isUnlocked ? "Unlocked" : "Locked"}
+                </div>
+
+                <div>✓ Storage Mode: {securityHealth.storageMode}</div>
+
+                <div>✓ Auto-lock: Configured for 5 minutes</div>
+
+                <div>
+                  {securityHealth.clipboardStatus === "granted"
+                    ? "✓"
+                    : securityHealth.clipboardStatus === "denied"
+                    ? "✕"
+                    : "○"}{" "}
+                  Clipboard Permission: {securityHealth.clipboardStatus}
+                </div>
               </div>
+
+              <p
+                style={{
+                  marginTop: "14px",
+                  color: "#777",
+                  fontSize: "13px",
+                  lineHeight: "1.6",
+                }}
+              >
+                This panel checks browser-side security capabilities in real
+                time. It does not scan the device, browser extensions, or
+                deployment pipeline.
+              </p>
             </div>
           </section>
 
@@ -433,6 +551,7 @@ function App() {
             </h2>
 
             <div
+              className="cyber-danger-pulse"
               style={{
                 marginBottom: "22px",
                 padding: "14px 16px",
@@ -659,20 +778,24 @@ function App() {
             />
 
             <button
+              className="cyber-button"
               onClick={handleAddSecret}
               style={{
                 padding: "12px 16px",
                 cursor: "pointer",
                 marginRight: "12px",
                 borderRadius: "8px",
-                border: "none",
-                fontWeight: 600,
+                border: "1px solid rgba(100, 255, 180, 0.4)",
+                background: "linear-gradient(135deg, #e5e5e5, #b7ffd7)",
+                color: "#111",
+                fontWeight: 700,
               }}
             >
               Save Encrypted Secret
             </button>
 
             <button
+              className="cyber-button"
               onClick={handleLock}
               style={{
                 padding: "12px 16px",
@@ -731,6 +854,7 @@ function App() {
                   )}
 
                   <button
+                    className="cyber-button"
                     onClick={() => handleRevealSecret(item)}
                     style={{
                       padding: "8px 12px",
@@ -745,6 +869,7 @@ function App() {
 
                   {visibleSecrets[item.id] && (
                     <button
+                      className="cyber-button"
                       onClick={() => handleCopySecret(visibleSecrets[item.id])}
                       style={{
                         padding: "8px 12px",
@@ -759,6 +884,7 @@ function App() {
                   )}
 
                   <button
+                    className="cyber-button"
                     onClick={() => handleDeleteSecret(item.id)}
                     style={{
                       padding: "8px 12px",
