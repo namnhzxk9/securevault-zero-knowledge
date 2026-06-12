@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { evaluatePasswordStrength } from "./security/passwordStrength";
 
 import { deriveKey } from "./crypto/keyDerivation";
 import { encryptText } from "./crypto/encrypt";
@@ -15,6 +16,7 @@ const VAULT_SALT_KEY = "securevault-salt";
 
 function App() {
   const [masterPassword, setMasterPassword] = useState("");
+  const passwordStrength = evaluatePasswordStrength(masterPassword);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [key, setKey] = useState<CryptoKey | null>(null);
 
@@ -48,10 +50,10 @@ function App() {
   }
 
   async function handleUnlock() {
-    if (masterPassword.length < 8) {
-      alert("Master password must be at least 8 characters.");
-      return;
-    }
+    if (passwordStrength.label === "Weak") {
+    alert("Master password is too weak. Use at least 12 characters with a mix of uppercase, lowercase, numbers, and symbols.");
+    return;
+  }
 
     const salt = getOrCreateVaultSalt();
     const derivedKey = await deriveKey(masterPassword, salt);
