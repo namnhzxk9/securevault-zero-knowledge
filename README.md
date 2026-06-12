@@ -70,10 +70,10 @@ Implemented:
 * Reveal secrets on demand
 * Lock vault manually
 * Password strength meter for master password
+* Auto-lock after inactivity
 
 Planned improvements:
 
-* Auto-lock after inactivity
 * Encrypted vault export/import
 * Clipboard auto-clear
 * Additional unit tests
