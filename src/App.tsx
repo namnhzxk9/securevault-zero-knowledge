@@ -51,17 +51,11 @@ function App() {
   }
 
   async function handleUnlock() {
-    if (passwordStrength.label === "Weak") {
-    alert("Master password is too weak. Use at least 12 characters with a mix of uppercase, lowercase, numbers, and symbols.");
-    return;
-  }
-
-  useAutoLock({
-  isEnabled: isUnlocked,
-  timeoutMs: 10 * 1000,
-  onLock: handleLock,
-});
-
+    if (masterPassword.trim().length < 12) {
+  alert("Master password must be at least 12 characters.");
+  return;
+}
+  
     const salt = getOrCreateVaultSalt();
     const derivedKey = await deriveKey(masterPassword, salt);
 
@@ -134,7 +128,11 @@ function App() {
     setSecretValue("");
     setVisibleSecrets({});
   }
-
+  useAutoLock({
+    isEnabled: isUnlocked,
+    timeoutMs: 5 * 60 * 1000,
+    onLock: handleLock,
+  });
   return (
     <main style={{ padding: "40px", fontFamily: "Arial" }}>
       <h1>SecureVault Zero-Knowledge</h1>
