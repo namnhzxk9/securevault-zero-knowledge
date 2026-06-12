@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { evaluatePasswordStrength } from "./security/passwordStrength";
-import { useAutoLock } from "./security/useAutoLock";
 
 import { deriveKey } from "./crypto/keyDerivation";
 import { encryptText } from "./crypto/encrypt";
@@ -12,12 +10,15 @@ import {
   saveVaultItem,
   type VaultItem,
 } from "./storage/vaultRepository";
+import { evaluatePasswordStrength } from "./security/passwordStrength";
+import { useAutoLock } from "./security/useAutoLock";
 
 const VAULT_SALT_KEY = "securevault-salt";
 
 function App() {
   const [masterPassword, setMasterPassword] = useState("");
   const passwordStrength = evaluatePasswordStrength(masterPassword);
+
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [key, setKey] = useState<CryptoKey | null>(null);
 
@@ -27,6 +28,7 @@ function App() {
   const [visibleSecrets, setVisibleSecrets] = useState<Record<string, string>>(
     {}
   );
+  const [copyMessage, setCopyMessage] = useState("");
 
   useEffect(() => {
     loadItems();
@@ -51,11 +53,11 @@ function App() {
   }
 
   async function handleUnlock() {
-    if (masterPassword.trim().length < 12) {
-  alert("Master password must be at least 12 characters.");
-  return;
-}
-  
+    if (masterPassword.trim().length < 8) {
+      alert("Master password must be at least 8 characters.");
+      return;
+    }
+
     const salt = getOrCreateVaultSalt();
     const derivedKey = await deriveKey(masterPassword, salt);
 
@@ -109,6 +111,26 @@ function App() {
     }
   }
 
+  async function handleCopySecret(secret: string) {
+    try {
+      await navigator.clipboard.writeText(secret);
+      setCopyMessage(
+        "Secret copied to clipboard. Clipboard will be cleared in 30 seconds."
+      );
+
+      window.setTimeout(async () => {
+        try {
+          await navigator.clipboard.writeText("");
+          setCopyMessage("Clipboard cleared.");
+        } catch {
+          setCopyMessage("Clipboard clear failed. Please clear it manually.");
+        }
+      }, 30 * 1000);
+    } catch {
+      setCopyMessage("Copy failed. Clipboard permission may be blocked.");
+    }
+  }
+
   async function handleDeleteSecret(id: string) {
     await deleteVaultItem(id);
     await loadItems();
@@ -127,93 +149,388 @@ function App() {
     setSecretTitle("");
     setSecretValue("");
     setVisibleSecrets({});
+    setCopyMessage("");
   }
+
   useAutoLock({
     isEnabled: isUnlocked,
     timeoutMs: 5 * 60 * 1000,
     onLock: handleLock,
   });
-  return (
-    <main style={{ padding: "40px", fontFamily: "Arial" }}>
-      <h1>SecureVault Zero-Knowledge</h1>
 
-      <p>
-        Encrypted vault for secrets, API keys, passwords, and private notes.
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: "48px",
+        fontFamily: "Arial",
+        background: "#15161a",
+        color: "#f5f5f5",
+      }}
+    >
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          maxWidth: "1180px",
+          margin: "0 auto 36px auto",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: "14px",
+              letterSpacing: "3px",
+              fontWeight: 700,
+              color: "#f5f5f5",
+            }}
+          >
+            NGUYEN HOAI NAM
+          </div>
+
+          <div
+            style={{
+              marginTop: "6px",
+              fontSize: "12px",
+              letterSpacing: "2px",
+              color: "#888",
+            }}
+          >
+            SECURITY LAB · ENCRYPTED SYSTEMS
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: "10px 14px",
+            border: "1px solid #333",
+            borderRadius: "999px",
+            background: "#0f0f0f",
+            color: "#aaa",
+            fontSize: "13px",
+            letterSpacing: "1px",
+          }}
+        >
+          LOCAL-ONLY · ZERO-KNOWLEDGE
+        </div>
+      </header>
+
+      <h1
+        style={{
+          textAlign: "center",
+          fontSize: "56px",
+          marginBottom: "12px",
+        }}
+      >
+        SecureVault Zero-Knowledge
+      </h1>
+
+      <p
+        style={{
+          textAlign: "center",
+          color: "#aaa",
+          fontSize: "18px",
+        }}
+      >
+        A zero-knowledge encrypted vault for private data, credentials, and
+        sensitive notes.
       </p>
 
       {!isUnlocked ? (
-        <section
+        <div
           style={{
-            marginTop: "24px",
-            padding: "24px",
-            border: "1px solid #ddd",
-            borderRadius: "12px",
-            maxWidth: "480px",
+            marginTop: "32px",
+            display: "grid",
+            gridTemplateColumns: "minmax(360px, 520px) 1fr",
+            gap: "24px",
+            alignItems: "stretch",
+            maxWidth: "1180px",
+            marginLeft: "auto",
+            marginRight: "auto",
           }}
         >
-          <h2>Unlock Vault</h2>
-
-          <input
-            type="password"
-            placeholder="Enter master password"
-            value={masterPassword}
-            onChange={(event) => setMasterPassword(event.target.value)}
+          <section
             style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "12px",
-              boxSizing: "border-box",
-            }}
-          />
-            <div
-    style={{
-      marginBottom: "16px",
-      padding: "12px",
-      border: "1px solid #333",
-      borderRadius: "8px",
-      background: "#111",
-    }}
-  >
-    <strong>Password Strength: {passwordStrength.label}</strong>
-
-    <ul style={{ marginTop: "8px", marginBottom: 0, paddingLeft: "20px" }}>
-      <li>{passwordStrength.checks.minLength ? "✓" : "○"} At least 12 characters</li>
-      <li>{passwordStrength.checks.hasUppercase ? "✓" : "○"} Contains uppercase letter</li>
-      <li>{passwordStrength.checks.hasLowercase ? "✓" : "○"} Contains lowercase letter</li>
-      <li>{passwordStrength.checks.hasNumber ? "✓" : "○"} Contains number</li>
-      <li>{passwordStrength.checks.hasSpecialChar ? "✓" : "○"} Contains special character</li>
-    </ul>
-  </div>
-
-          <button
-            onClick={handleUnlock}
-            style={{
-              padding: "12px 16px",
-              cursor: "pointer",
+              padding: "28px",
+              border: "1px solid #ddd",
+              borderRadius: "16px",
+              background: "rgba(255, 255, 255, 0.03)",
             }}
           >
-            Unlock
-          </button>
+            <h2 style={{ marginTop: 0 }}>Unlock Vault</h2>
 
-          <p style={{ marginTop: "16px", color: "#999" }}>
-            Saved encrypted items: {items.length}
-          </p>
-        </section>
+            <input
+              type="password"
+              placeholder="Enter master password"
+              value={masterPassword}
+              onChange={(event) => setMasterPassword(event.target.value)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                marginBottom: "14px",
+                boxSizing: "border-box",
+                borderRadius: "8px",
+                border: "1px solid #555",
+                background: "#2f2f2f",
+                color: "#fff",
+              }}
+            />
+
+            <div
+              style={{
+                marginBottom: "18px",
+                padding: "16px",
+                border: "1px solid #333",
+                borderRadius: "12px",
+                background: "#111",
+              }}
+            >
+              <strong>Password Strength: {passwordStrength.label}</strong>
+
+              <ul
+                style={{
+                  marginTop: "12px",
+                  marginBottom: 0,
+                  paddingLeft: "0",
+                  listStyle: "none",
+                  lineHeight: "1.8",
+                }}
+              >
+                <li>
+                  {passwordStrength.checks.minLength ? "✓" : "○"} At least 12
+                  characters
+                </li>
+                <li>
+                  {passwordStrength.checks.hasUppercase ? "✓" : "○"} Contains
+                  uppercase letter
+                </li>
+                <li>
+                  {passwordStrength.checks.hasLowercase ? "✓" : "○"} Contains
+                  lowercase letter
+                </li>
+                <li>
+                  {passwordStrength.checks.hasNumber ? "✓" : "○"} Contains
+                  number
+                </li>
+                <li>
+                  {passwordStrength.checks.hasSpecialChar ? "✓" : "○"} Contains
+                  special character
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={handleUnlock}
+              style={{
+                padding: "12px 18px",
+                cursor: "pointer",
+                borderRadius: "8px",
+                border: "none",
+                background: "#e5e5e5",
+                color: "#111",
+                fontWeight: 600,
+              }}
+            >
+              Unlock
+            </button>
+
+            <p style={{ marginTop: "18px", color: "#999" }}>
+              Saved encrypted items: {items.length}
+            </p>
+          </section>
+
+          <section
+            style={{
+              padding: "28px",
+              border: "1px solid #333",
+              borderRadius: "16px",
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "12px",
+                marginBottom: "24px",
+              }}
+            >
+              <div
+                style={{
+                  padding: "16px",
+                  border: "1px solid #333",
+                  borderRadius: "12px",
+                  background: "#111",
+                }}
+              >
+                <strong>AES-GCM</strong>
+                <p style={{ color: "#999", marginBottom: 0 }}>
+                  Authenticated encryption
+                </p>
+              </div>
+
+              <div
+                style={{
+                  padding: "16px",
+                  border: "1px solid #333",
+                  borderRadius: "12px",
+                  background: "#111",
+                }}
+              >
+                <strong>PBKDF2</strong>
+                <p style={{ color: "#999", marginBottom: 0 }}>
+                  Key derivation
+                </p>
+              </div>
+
+              <div
+                style={{
+                  padding: "16px",
+                  border: "1px solid #333",
+                  borderRadius: "12px",
+                  background: "#111",
+                }}
+              >
+                <strong>IndexedDB</strong>
+                <p style={{ color: "#999", marginBottom: 0 }}>
+                  Encrypted local storage
+                </p>
+              </div>
+            </div>
+
+            <h2 style={{ marginTop: 0 }}>Zero-Knowledge Security Model</h2>
+
+            <div
+              style={{
+                marginBottom: "22px",
+                padding: "14px 16px",
+                border: "1px solid #4a1f1f",
+                borderRadius: "12px",
+                background:
+                  "linear-gradient(135deg, rgba(120, 20, 20, 0.28), rgba(15, 15, 15, 0.9))",
+                color: "#ffb4b4",
+                fontSize: "14px",
+                letterSpacing: "1px",
+              }}
+            >
+              SECURITY NOTICE · PLAINTEXT NEVER LEAVES THE ACTIVE SESSION
+            </div>
+
+            <p style={{ color: "#aaa", lineHeight: "1.7" }}>
+              SecureVault encrypts sensitive data directly in the browser before
+              it is stored. The master password and plaintext secrets are never
+              persisted.
+            </p>
+
+            <div
+              style={{
+                marginTop: "22px",
+                padding: "18px",
+                border: "1px solid #333",
+                borderRadius: "12px",
+                background: "#0f0f0f",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>How it works</h3>
+
+              <ol
+                style={{ color: "#aaa", lineHeight: "1.9", paddingLeft: "20px" }}
+              >
+                <li>Master password derives a local encryption key.</li>
+                <li>Secrets are encrypted with AES-GCM.</li>
+                <li>Only ciphertext is saved to IndexedDB.</li>
+                <li>Plaintext exists only during an unlocked session.</li>
+              </ol>
+            </div>
+
+            <div
+              style={{
+                marginTop: "22px",
+                padding: "18px",
+                border: "1px solid #253b2f",
+                borderRadius: "12px",
+                background:
+                  "linear-gradient(135deg, rgba(20, 80, 45, 0.2), rgba(10, 10, 10, 0.9))",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Security Posture</h3>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                  color: "#aaa",
+                  lineHeight: "1.7",
+                }}
+              >
+                <div>✓ No plaintext persistence</div>
+                <div>✓ Browser-side key derivation</div>
+                <div>✓ Authenticated encryption</div>
+                <div>✓ Manual and inactivity lock</div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: "22px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "12px",
+              }}
+            >
+              <div
+                style={{
+                  padding: "16px",
+                  border: "1px solid #333",
+                  borderRadius: "12px",
+                }}
+              >
+                <strong>No plaintext storage</strong>
+                <p style={{ color: "#999", marginBottom: 0 }}>
+                  Secrets are encrypted before being persisted.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  padding: "16px",
+                  border: "1px solid #333",
+                  borderRadius: "12px",
+                }}
+              >
+                <strong>Auto-lock enabled</strong>
+                <p style={{ color: "#999", marginBottom: 0 }}>
+                  Vault locks after inactivity.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
       ) : (
         <section
           style={{
-            marginTop: "24px",
-            padding: "24px",
+            marginTop: "32px",
+            padding: "28px",
             border: "1px solid #ddd",
-            borderRadius: "12px",
-            maxWidth: "820px",
+            borderRadius: "16px",
+            maxWidth: "920px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            background: "rgba(255, 255, 255, 0.03)",
           }}
         >
           <h2>Vault Dashboard</h2>
+
           <p>Status: Vault unlocked</p>
+
           <p style={{ color: "#999" }}>
             Auto-lock enabled after 5 minutes of inactivity.
           </p>
+
+          {copyMessage && <p style={{ color: "#999" }}>{copyMessage}</p>}
 
           <div style={{ marginBottom: "24px" }}>
             <h3>Add Secret</h3>
@@ -228,6 +545,10 @@ function App() {
                 padding: "12px",
                 boxSizing: "border-box",
                 marginBottom: "12px",
+                borderRadius: "8px",
+                border: "1px solid #555",
+                background: "#2f2f2f",
+                color: "#fff",
               }}
             />
 
@@ -241,6 +562,10 @@ function App() {
                 padding: "12px",
                 boxSizing: "border-box",
                 marginBottom: "12px",
+                borderRadius: "8px",
+                border: "1px solid #555",
+                background: "#2f2f2f",
+                color: "#fff",
               }}
             />
 
@@ -250,6 +575,9 @@ function App() {
                 padding: "12px 16px",
                 cursor: "pointer",
                 marginRight: "12px",
+                borderRadius: "8px",
+                border: "none",
+                fontWeight: 600,
               }}
             >
               Save Encrypted Secret
@@ -260,6 +588,10 @@ function App() {
               style={{
                 padding: "12px 16px",
                 cursor: "pointer",
+                borderRadius: "8px",
+                border: "1px solid #555",
+                background: "#111",
+                color: "#fff",
               }}
             >
               Lock Vault
@@ -279,9 +611,10 @@ function App() {
                   key={item.id}
                   style={{
                     padding: "16px",
-                    border: "1px solid #ddd",
-                    borderRadius: "10px",
+                    border: "1px solid #333",
+                    borderRadius: "12px",
                     marginBottom: "12px",
+                    background: "#111",
                   }}
                 >
                   <strong>{item.title}</strong>
@@ -297,7 +630,7 @@ function App() {
                   {visibleSecrets[item.id] && (
                     <pre
                       style={{
-                        background: "#111",
+                        background: "#050505",
                         color: "#fff",
                         padding: "12px",
                         borderRadius: "8px",
@@ -314,16 +647,37 @@ function App() {
                       padding: "8px 12px",
                       cursor: "pointer",
                       marginRight: "8px",
+                      borderRadius: "6px",
+                      border: "none",
                     }}
                   >
                     Reveal
                   </button>
+
+                  {visibleSecrets[item.id] && (
+                    <button
+                      onClick={() => handleCopySecret(visibleSecrets[item.id])}
+                      style={{
+                        padding: "8px 12px",
+                        cursor: "pointer",
+                        marginRight: "8px",
+                        borderRadius: "6px",
+                        border: "none",
+                      }}
+                    >
+                      Copy
+                    </button>
+                  )}
 
                   <button
                     onClick={() => handleDeleteSecret(item.id)}
                     style={{
                       padding: "8px 12px",
                       cursor: "pointer",
+                      borderRadius: "6px",
+                      border: "1px solid #555",
+                      background: "#111",
+                      color: "#fff",
                     }}
                   >
                     Delete
