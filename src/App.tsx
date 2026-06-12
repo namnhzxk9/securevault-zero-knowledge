@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { evaluatePasswordStrength } from "./security/passwordStrength";
+import { useAutoLock } from "./security/useAutoLock";
 
 import { deriveKey } from "./crypto/keyDerivation";
 import { encryptText } from "./crypto/encrypt";
@@ -54,6 +55,12 @@ function App() {
     alert("Master password is too weak. Use at least 12 characters with a mix of uppercase, lowercase, numbers, and symbols.");
     return;
   }
+
+  useAutoLock({
+  isEnabled: isUnlocked,
+  timeoutMs: 10 * 1000,
+  onLock: handleLock,
+});
 
     const salt = getOrCreateVaultSalt();
     const derivedKey = await deriveKey(masterPassword, salt);
@@ -206,6 +213,9 @@ function App() {
         >
           <h2>Vault Dashboard</h2>
           <p>Status: Vault unlocked</p>
+          <p style={{ color: "#999" }}>
+            Auto-lock enabled after 5 minutes of inactivity.
+          </p>
 
           <div style={{ marginBottom: "24px" }}>
             <h3>Add Secret</h3>
