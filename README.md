@@ -9,7 +9,7 @@ All sensitive data is encrypted locally before being stored. Master passwords an
 - AES-256-GCM encryption
 - PBKDF2 key derivation
 - Client-side encryption
-- IndexedDB local storage 
+- IndexedDB local storage
 - Persistent vault salt
 - Encrypted secret storage
 - Reveal-on-demand decryption
