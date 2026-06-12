@@ -8,19 +8,29 @@ export async function encryptText(
   const encrypted = await crypto.subtle.encrypt(
     {
       name: "AES-GCM",
-      iv,
+      iv: iv as BufferSource,
     },
     key,
-    encoder.encode(plaintext)
+    encoder.encode(plaintext) as BufferSource
   );
 
   return {
     ciphertext: arrayBufferToBase64(encrypted),
-    iv: arrayBufferToBase64(iv),
+    iv: uint8ArrayToBase64(iv),
   };
 }
 
-function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
-  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-  return btoa(String.fromCharCode(...bytes));
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  return uint8ArrayToBase64(bytes);
+}
+
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+
+  return btoa(binary);
 }

@@ -9,10 +9,10 @@ export async function decryptText(
   const decrypted = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
-      iv: ivBytes,
+      iv: ivBytes as BufferSource,
     },
     key,
-    encryptedBytes
+    encryptedBytes as BufferSource
   );
 
   return new TextDecoder().decode(decrypted);
@@ -20,5 +20,11 @@ export async function decryptText(
 
 function base64ToUint8Array(base64: string): Uint8Array {
   const binary = atob(base64);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
 }
