@@ -53,8 +53,8 @@ function App() {
   }
 
   async function handleUnlock() {
-    if (masterPassword.trim().length < 8) {
-      alert("Master password must be at least 8 characters.");
+    if (masterPassword.trim().length < 12) {
+      alert("Master password must be at least 12 characters.");
       return;
     }
 
@@ -242,9 +242,9 @@ function App() {
           style={{
             marginTop: "32px",
             display: "grid",
-            gridTemplateColumns: "minmax(360px, 520px) 1fr",
+            gridTemplateColumns: "minmax(360px, 500px) 1fr",
             gap: "24px",
-            alignItems: "stretch",
+            alignItems: "start",
             maxWidth: "1180px",
             marginLeft: "auto",
             marginRight: "auto",
@@ -258,7 +258,9 @@ function App() {
               background: "rgba(255, 255, 255, 0.03)",
             }}
           >
-            <h2 style={{ marginTop: 0 }}>Unlock Vault</h2>
+            <h2 style={{ marginTop: 0, textAlign: "center" }}>
+              Unlock Vault
+            </h2>
 
             <input
               type="password"
@@ -284,6 +286,7 @@ function App() {
                 border: "1px solid #333",
                 borderRadius: "12px",
                 background: "#111",
+                textAlign: "center",
               }}
             >
               <strong>Password Strength: {passwordStrength.label}</strong>
@@ -295,6 +298,8 @@ function App() {
                   paddingLeft: "0",
                   listStyle: "none",
                   lineHeight: "1.8",
+                  textAlign: "left",
+                  display: "inline-block",
                 }}
               >
                 <li>
@@ -320,24 +325,46 @@ function App() {
               </ul>
             </div>
 
-            <button
-              onClick={handleUnlock}
-              style={{
-                padding: "12px 18px",
-                cursor: "pointer",
-                borderRadius: "8px",
-                border: "none",
-                background: "#e5e5e5",
-                color: "#111",
-                fontWeight: 600,
-              }}
-            >
-              Unlock
-            </button>
+            <div style={{ textAlign: "center" }}>
+              <button
+                onClick={handleUnlock}
+                style={{
+                  padding: "12px 18px",
+                  cursor: "pointer",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "#e5e5e5",
+                  color: "#111",
+                  fontWeight: 600,
+                }}
+              >
+                Unlock
+              </button>
+            </div>
 
-            <p style={{ marginTop: "18px", color: "#999" }}>
+            <p style={{ marginTop: "18px", color: "#999", textAlign: "center" }}>
               Saved encrypted items: {items.length}
             </p>
+
+            <div
+              style={{
+                marginTop: "22px",
+                padding: "16px",
+                border: "1px solid #333",
+                borderRadius: "12px",
+                background: "#0f0f0f",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>System Status</h3>
+
+              <div style={{ color: "#aaa", lineHeight: "1.8" }}>
+                <div>✓ Client-side encryption active</div>
+                <div>✓ No backend database</div>
+                <div>✓ Local encrypted storage</div>
+                <div>✓ Manual lock available</div>
+                <div>✓ Auto-lock after inactivity</div>
+              </div>
+            </div>
           </section>
 
           <section
@@ -363,6 +390,7 @@ function App() {
                   border: "1px solid #333",
                   borderRadius: "12px",
                   background: "#111",
+                  textAlign: "center",
                 }}
               >
                 <strong>AES-GCM</strong>
@@ -377,12 +405,11 @@ function App() {
                   border: "1px solid #333",
                   borderRadius: "12px",
                   background: "#111",
+                  textAlign: "center",
                 }}
               >
                 <strong>PBKDF2</strong>
-                <p style={{ color: "#999", marginBottom: 0 }}>
-                  Key derivation
-                </p>
+                <p style={{ color: "#999", marginBottom: 0 }}>Key derivation</p>
               </div>
 
               <div
@@ -391,6 +418,7 @@ function App() {
                   border: "1px solid #333",
                   borderRadius: "12px",
                   background: "#111",
+                  textAlign: "center",
                 }}
               >
                 <strong>IndexedDB</strong>
@@ -400,7 +428,9 @@ function App() {
               </div>
             </div>
 
-            <h2 style={{ marginTop: 0 }}>Zero-Knowledge Security Model</h2>
+            <h2 style={{ marginTop: 0, textAlign: "center" }}>
+              Zero-Knowledge Security Model
+            </h2>
 
             <div
               style={{
@@ -413,12 +443,13 @@ function App() {
                 color: "#ffb4b4",
                 fontSize: "14px",
                 letterSpacing: "1px",
+                textAlign: "center",
               }}
             >
               SECURITY NOTICE · PLAINTEXT NEVER LEAVES THE ACTIVE SESSION
             </div>
 
-            <p style={{ color: "#aaa", lineHeight: "1.7" }}>
+            <p style={{ color: "#aaa", lineHeight: "1.7", textAlign: "center" }}>
               SecureVault encrypts sensitive data directly in the browser before
               it is stored. The master password and plaintext secrets are never
               persisted.
@@ -433,10 +464,43 @@ function App() {
                 background: "#0f0f0f",
               }}
             >
-              <h3 style={{ marginTop: 0 }}>How it works</h3>
+              <h3 style={{ marginTop: 0, textAlign: "center" }}>
+                Encryption Flow
+              </h3>
+
+              <p
+                style={{
+                  color: "#aaa",
+                  lineHeight: "1.8",
+                  fontFamily: "monospace",
+                  fontSize: "14px",
+                  textAlign: "center",
+                }}
+              >
+                Master Password → PBKDF2 → AES-GCM Key → Encrypted Secret →
+                IndexedDB
+              </p>
+            </div>
+
+            <div
+              style={{
+                marginTop: "22px",
+                padding: "18px",
+                border: "1px solid #333",
+                borderRadius: "12px",
+                background: "#0f0f0f",
+              }}
+            >
+              <h3 style={{ marginTop: 0, textAlign: "center" }}>
+                How it works
+              </h3>
 
               <ol
-                style={{ color: "#aaa", lineHeight: "1.9", paddingLeft: "20px" }}
+                style={{
+                  color: "#aaa",
+                  lineHeight: "1.9",
+                  paddingLeft: "22px",
+                }}
               >
                 <li>Master password derives a local encryption key.</li>
                 <li>Secrets are encrypted with AES-GCM.</li>
@@ -455,7 +519,9 @@ function App() {
                   "linear-gradient(135deg, rgba(20, 80, 45, 0.2), rgba(10, 10, 10, 0.9))",
               }}
             >
-              <h3 style={{ marginTop: 0 }}>Security Posture</h3>
+              <h3 style={{ marginTop: 0, textAlign: "center" }}>
+                Security Posture
+              </h3>
 
               <div
                 style={{
@@ -476,36 +542,59 @@ function App() {
             <div
               style={{
                 marginTop: "22px",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "12px",
+                padding: "18px",
+                border: "1px solid #333",
+                borderRadius: "12px",
+                background: "#0f0f0f",
               }}
             >
-              <div
-                style={{
-                  padding: "16px",
-                  border: "1px solid #333",
-                  borderRadius: "12px",
-                }}
-              >
-                <strong>No plaintext storage</strong>
-                <p style={{ color: "#999", marginBottom: 0 }}>
-                  Secrets are encrypted before being persisted.
-                </p>
-              </div>
+              <h3 style={{ marginTop: 0, textAlign: "center" }}>
+                Security Boundary
+              </h3>
 
               <div
                 style={{
-                  padding: "16px",
-                  border: "1px solid #333",
-                  borderRadius: "12px",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "16px",
+                  color: "#aaa",
+                  lineHeight: "1.7",
                 }}
               >
-                <strong>Auto-lock enabled</strong>
-                <p style={{ color: "#999", marginBottom: 0 }}>
-                  Vault locks after inactivity.
-                </p>
+                <div>
+                  <strong style={{ color: "#f5f5f5" }}>Protected</strong>
+                  <ul>
+                    <li>Local storage exposure</li>
+                    <li>Ciphertext leakage</li>
+                    <li>Accidental plaintext persistence</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <strong style={{ color: "#f5f5f5" }}>Not Protected</strong>
+                  <ul>
+                    <li>Compromised browser</li>
+                    <li>Malicious extensions</li>
+                    <li>Weak master password</li>
+                  </ul>
+                </div>
               </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: "22px",
+                padding: "16px",
+                border: "1px solid #4a1f1f",
+                borderRadius: "12px",
+                background: "rgba(120, 20, 20, 0.12)",
+                color: "#c8a0a0",
+                lineHeight: "1.7",
+              }}
+            >
+              <strong>Risk Disclosure:</strong> This MVP protects stored
+              ciphertext but does not protect against compromised devices,
+              malicious browser extensions, or tampered deployment code.
             </div>
           </section>
         </div>
